@@ -1,4 +1,6 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform } from "react-native";
+
 import React from "react";
 import { colors } from "../utils/colors";
 import { fonts } from "../utils/fonts";
@@ -16,15 +18,19 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <Image source={require("../assets/logo.png")} style={styles.logo} />
-      <Image source={require("../assets/main.png")} style={styles.bannerImage} />
+      <Image
+        source={require("../assets/main.png")}
+        style={styles.bannerImage}
+      />
       <Text style={styles.title}>StoRez</Text>
       <Text style={styles.subTitle}>
-        Brzo i lako rezervisi mesto u svom omiljenom restoranu pomocu aplikacije StoRez!
+        Brzo i lako rezervisi mesto u svom omiljenom restoranu pomocu aplikacije
+        StoRez!
       </Text>
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={[
-            styles.loginButtonWrapper
+            styles.loginButtonWrapper,
             // ,{ backgroundColor: colors.primary },
           ]}
           onPress={handleLogin}
@@ -57,12 +63,15 @@ const styles = StyleSheet.create({
   },
   bannerImage: {
     marginVertical: 20,
-    height: 400,
+    height: 300,
     width: 300,
   },
   title: {
     fontSize: 40,
-    fontFamily: fonts.SemiBold,
+    // fontFamily: Platform.select({
+    //   android: "Roboto_700Bold",
+    // }),
+    fontFamily: "",
     paddingHorizontal: 20,
     textAlign: "center",
     color: colors.primary,
@@ -73,7 +82,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     textAlign: "center",
     color: colors.secondary,
-    fontFamily: fonts.Medium,
     marginVertical: 20,
   },
   buttonContainer: {
@@ -95,10 +103,8 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: colors.white,
     fontSize: 18,
-    fontFamily: fonts.SemiBold,
   },
   signupButtonText: {
     fontSize: 18,
-    fontFamily: fonts.SemiBold,
   },
 });
