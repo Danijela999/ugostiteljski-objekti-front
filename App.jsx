@@ -42,14 +42,14 @@ const App = () => {
               headerShown: false,
             }}
           >
-            <Stack.Screen name={"HOME"} component={HomeScreen} />
-            <Stack.Screen name={"DASHBOARD"} component={Dashboard} />
+            {/* <Stack.Screen name={"HOME"} component={HomeScreen} /> */}
+            {/* <Stack.Screen name={"DASHBOARD"} component={Dashboard} /> */}
 
             <Stack.Screen name={"PROFILE"} component={ProfileScreen} />
-            <Stack.Screen name={"LOGIN"} component={LoginScreen} />
-            <Stack.Screen name={"MAP"} component={AddRestaurant} />
-            <Stack.Screen name={"RESERVATION"} component={ReservationScreen} />
-            <Stack.Screen name="SIGNUP" component={SignupScreen} />
+            {/* <Stack.Screen name={"LOGIN"} component={LoginScreen} /> */}
+            {/* <Stack.Screen name={"MAP"} component={AddRestaurant} /> */}
+            {/* <Stack.Screen name={"RESERVATION"} component={ReservationScreen} /> */}
+            {/* <Stack.Screen name="SIGNUP" component={SignupScreen} /> */}
           </Stack.Navigator>
         </AuthProvider>
       </PaperProvider>

@@ -4,8 +4,8 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
-  ScrollView,
   Alert,
+  ScrollView, // Dodato za vertikalni skrol
 } from "react-native";
 import {
   Text,
@@ -14,13 +14,10 @@ import {
   Modal,
   Portal,
   Provider as PaperProvider,
-  TextInput,
 } from "react-native-paper";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import * as ImagePicker from 'expo-image-picker';
 
 import { colors } from "../utils/colors";
-import { Picker } from "@react-native-picker/picker";
 import RestaurantCard from "../components/RestaurantCard";
 
 const profileInfo = {
@@ -55,17 +52,100 @@ const restaurantInfo = [
     category: "Doručak",
     guestCount: 6,
   },
+  {
+    image: require("../assets/smokvica.jpg"),
+    title: "Smokvica",
+    time: "15.08.2024. 09:00 - 10:00",
+    position: "Bašta",
+    category: "Doručak",
+    guestCount: 6,
+  },
+  {
+    image: require("../assets/bela_reka.jpg"),
+    title: "Bela Reka",
+    time: "15.08.2024. 19:00 - 22:00",
+    position: "Terasa",
+    category: "Večera",
+    guestCount: 2,
+  },
+  {
+    image: require("../assets/smokvica.jpg"),
+    title: "Smokvica",
+    time: "16.08.2024. 10:00 - 11:00",
+    position: "Bašta",
+    category: "Doručak",
+    guestCount: 6,
+  },
 ];
 
 const ProfileScreen = () => {
   const [visible, setVisible] = useState(false);
+  const [profileImage, setProfileImage] = useState(profileInfo.image);
+
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
+
+  const selectImage = async () => {
+    Alert.alert(
+      "Odaberite opciju",
+      "Izaberite fotografiju iz galerije ili uslikajte novu",
+      [
+        {
+          text: "Galerija",
+          onPress: pickImageFromGallery,
+        },
+        {
+          text: "Kamera",
+          onPress: takePhoto,
+        },
+        {
+          text: "Otkaži",
+          style: "cancel",
+        },
+      ]
+    );
+  };
+
+  const pickImageFromGallery = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setProfileImage({ uri: result.assets[0].uri });
+      saveImage(result.assets[0].uri);
+    }
+  };
+
+  const takePhoto = async () => {
+    let result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setProfileImage({ uri: result.assets[0].uri });
+      saveImage(result.assets[0].uri);
+    }
+  };
+
+  const saveImage = (uri) => {
+    // Implementirajte logiku za čuvanje putanje slike na željeno mesto.
+    // Možete sačuvati u AsyncStorage ili na backend server, ako je potrebno.
+    console.log("Sačuvana putanja slike:", uri);
+  };
 
   return (
     <PaperProvider>
       <View style={styles.container}>
         <Card style={styles.card}>
+          <TouchableOpacity onPress={selectImage} style={styles.imageContainer}>
+            <Image source={profileImage} style={styles.image} />
+          </TouchableOpacity>
           <Card.Title title={profileInfo.title} titleStyle={styles.cardTitle} />
           <Card.Content>
             <Text style={styles.name}>{profileInfo.name}</Text>
@@ -84,17 +164,19 @@ const ProfileScreen = () => {
             titleStyle={styles.cardTitle}
           />
           <Card.Content>
-            {restaurantInfo.map((restaurant, index) => (
-              <RestaurantCard
-                key={index} // ili još bolje, koristite jedinstveni ID ako postoji: key={restaurant.id}
-                imageUrl={restaurant.image}
-                restaurantName={restaurant.title}
-                time={restaurant.time}
-                position={restaurant.position}
-                category={restaurant.category}
-                guestCount={restaurant.guestCount}
-              />
-            ))}
+            <ScrollView style={styles.scrollContainer}>
+              {restaurantInfo.map((restaurant, index) => (
+                <RestaurantCard
+                  key={index} // ili još bolje, koristite jedinstveni ID ako postoji: key={restaurant.id}
+                  imageUrl={restaurant.image}
+                  restaurantName={restaurant.title}
+                  time={restaurant.time}
+                  position={restaurant.position}
+                  category={restaurant.category}
+                  guestCount={restaurant.guestCount}
+                />
+              ))}
+            </ScrollView>
           </Card.Content>
         </Card>
         <Portal>
@@ -103,7 +185,7 @@ const ProfileScreen = () => {
             onDismiss={hideModal}
             contentContainerStyle={styles.modalContainer}
           >
-            <Image source={profileInfo.image} style={styles.image} />
+            <Image source={profileImage} style={styles.image} />
             <Text style={styles.modalTitle}>{profileInfo.name}</Text>
             <Text style={styles.modalDescription}>{profileInfo.mail}</Text>
             <Button mode="contained" style={styles.closeButton}>
@@ -131,65 +213,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
   },
   card: {
-    marginBottom: 20,
+    marginBottom: 10,
   },
   cardTitle: {
     fontSize: 26,
     paddingTop: 10,
     fontWeight: "bold",
     textAlign: "center",
-  },
-  label: {
-    fontSize: 18,
-    marginBottom: 10,
-  },
-  dateGuestContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 15,
-  },
-  dateInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  input: {
-    flex: 1,
-    maxWidth: 120,
-    marginRight: 10,
-    fontSize: 14,
-    backgroundColor: colors.mint,
-  },
-  calendarButton: {
-    backgroundColor: colors.zelena,
-    padding: 10,
-    borderRadius: 100,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  guestInput: {
-    flex: 1,
-    maxWidth: 110,
-    marginLeft: 5,
-    fontSize: 14,
-    backgroundColor: colors.mint,
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: colors.zelena,
-    borderRadius: 5,
-    marginBottom: 15,
-  },
-  picker: {
-    height: 50,
-  },
-  reservationButton: {
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.zelena,
-    borderRadius: 100,
-    marginLeft: "15%",
-    width: "70%",
   },
   name: {
     fontSize: 18,
@@ -211,25 +241,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
   },
+  imageContainer: {
+    alignItems: "center", // Centriranje slike
+    marginBottom: 20,
+  },
   image: {
-    width: 300,
-    height: 300,
-    marginBottom: 20,
-    borderRadius: 300,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
   },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  modalDescription: {
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 10,
-  },
-  modalHours: {
-    fontSize: 16,
-    marginBottom: 20,
+  scrollContainer: {
+    maxHeight: 400, // Postavite maksimalnu visinu za skrol
   },
   closeButton: {
     justifyContent: "center",
@@ -237,31 +259,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.zelena,
     borderRadius: 100,
     marginTop: 10,
-  },
-  timeSlotContainer: {
-    flexDirection: "row",
-    marginTop: 20,
-  },
-  timeSlot: {
-    width: 95,
-    height: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 10,
-    borderRadius: 100,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  timeSlotText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 });
 
