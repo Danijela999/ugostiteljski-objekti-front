@@ -15,7 +15,7 @@ import {
   Portal,
   Provider as PaperProvider,
 } from "react-native-paper";
-import * as ImagePicker from 'expo-image-picker';
+import * as ImagePicker from "expo-image-picker";
 
 import { colors } from "../utils/colors";
 import RestaurantCard from "../components/RestaurantCard";
@@ -209,7 +209,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    marginTop: 50,
     backgroundColor: "#f5f5f5",
   },
   card: {

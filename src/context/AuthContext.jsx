@@ -3,7 +3,7 @@ import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import React, { createContext, useEffect, useState } from "react";
 import { BASE_URL } from "../config";
-
+import { Alert } from "react-native";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -37,14 +37,9 @@ export const AuthProvider = ({ children }) => {
 
   const refreshAccessToken = async () => {
     try {
-      console.log("refreshToken: " + refreshToken);
-      const token = await AsyncStorage.getItem("refreshToken");
-      console.log("TOKEN: " + token);
       const response = await instance.post(`/users/refresh`, {
         token: refreshToken,
       });
-      console.log("REsponse:");
-      console.log(response.data);
       const tokenData = response.data.data;
       const newAccessToken = tokenData.accessToken;
 
@@ -55,26 +50,17 @@ export const AuthProvider = ({ children }) => {
       return newAccessToken;
     } catch (error) {
       console.error("Failed to refresh access token", error);
-      // Handle refresh token error, such as redirecting to login
-      logout(); // You might want to log out the user if the refresh fails
+      logout();
     }
   };
 
   const makeAuthenticatedRequest = async (apiFunction) => {
     try {
-      console.log("TOKEN: ");
-      console.log(accessToken);
       const response = await apiFunction(accessToken);
       return response;
     } catch (error) {
-      console.log("ERROR");
-      console.log(error);
       if (error.response && error.response.status === 401) {
-        console.log("OVDE SAMM!!");
-        // Token is likely expired, so let's refresh it
         const newAccessToken = await refreshAccessToken();
-
-        // Retry the original request with the new token
         if (newAccessToken) {
           return apiFunction(newAccessToken);
         }
@@ -113,23 +99,19 @@ export const AuthProvider = ({ children }) => {
       });
       let userInfo = res.data;
 
-      // Save tokens to state and AsyncStorage
-      console.log("TOKEN");
       const userJson = userInfo.data;
-      console.log(userJson);
       setAccessToken(userJson.accessToken);
       setRefreshToken(userJson.refreshToken);
-      console.log(userJson.accessToken);
-      console.log(userJson.refreshToken);
       await AsyncStorage.setItem("accessToken", userJson.accessToken);
       await AsyncStorage.setItem("refreshToken", userJson.refreshToken);
-      console.log("PROSLO");
+
       setUserInfo(userInfo);
       await AsyncStorage.setItem("userInfo", JSON.stringify(userInfo));
       setIsLoading(false);
       navigation.navigate("DASHBOARD");
     } catch (error) {
       console.log(`login error ${error}`);
+      Alert.alert("Greska", "Doslo je do greske!");
       setIsLoading(false);
     }
   };
@@ -173,6 +155,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const getAllRestaurants = async () => {
+    setIsLoading(true);
+
+    try {
+      const res = await makeAuthenticatedRequest((token) =>
+        instance.get(`/restaurants`, {
+          headers: { Authorization: `${token}` },
+        })
+      );
+
+      let restaurantInfo = res.data;
+      console.log(restaurantInfo);
+      setIsLoading(false);
+    } catch (error) {
+      console.log(`getRestaurant error ${error}`);
+      setIsLoading(false);
+    }
+  };
+
   const logout = async () => {
     setIsLoading(true);
     try {
@@ -205,8 +206,9 @@ export const AuthProvider = ({ children }) => {
         isLoading,
         register,
         login,
-        addRestaurant,
         logout,
+        addRestaurant,
+        getAllRestaurants,
       }}
     >
       {children}
