@@ -155,6 +155,29 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const getAllRestaurantsByCoordinates = async (latitude, longitude) => {
+    setIsLoading(true);
+
+    try {
+      const res = await makeAuthenticatedRequest((token) =>
+        instance.get(
+          `/restaurants/coordinates?latitude=${latitude}&longitude=${longitude}`,
+          {
+            headers: { Authorization: `${token}` },
+          }
+        )
+      );
+
+      let restaurantInfo = res.data;
+
+      setIsLoading(false);
+      return restaurantInfo;
+    } catch (error) {
+      console.log(`getAllRestaurantsByCoordinates error ${error}`);
+      setIsLoading(false);
+    }
+  };
+
   const getAllRestaurants = async () => {
     setIsLoading(true);
 
@@ -166,10 +189,10 @@ export const AuthProvider = ({ children }) => {
       );
 
       let restaurantInfo = res.data;
-      console.log(restaurantInfo);
       setIsLoading(false);
+      return restaurantInfo;
     } catch (error) {
-      console.log(`getRestaurant error ${error}`);
+      console.log(`getAllRestaurants error ${error}`);
       setIsLoading(false);
     }
   };
@@ -208,6 +231,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         addRestaurant,
+        getAllRestaurantsByCoordinates,
         getAllRestaurants,
       }}
     >

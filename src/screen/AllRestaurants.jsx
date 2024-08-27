@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   FlatList,
   StyleSheet,
@@ -6,9 +6,13 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { Card, Button } from "react-native-paper";
 import { colors } from "../utils/colors";
+import * as Location from "expo-location";
+import { AuthContext } from "../context/AuthContext";
+import Spinner from "react-native-loading-spinner-overlay/lib";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -59,13 +63,62 @@ const itemsNew = [
 ];
 
 const AllRestaurants = ({ navigation }) => {
+  const [restaurantsNearby, setRestaurantsNearby] = useState([]);
+  const [newRestaurants, setNewRestaurants] = useState([]);
+  const { getAllRestaurantsByCoordinates, getAllRestaurants } =
+    useContext(AuthContext);
+  const [location, setLocation] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const handlePress = (item) => {
     console.log("Clicked item:", item);
   };
 
-  const handleSearchRestaurants = () => {
-    console.log("Pretraga restorana");
-  };
+  useEffect(() => {
+    const fetchLocationAndRestaurants = async () => {
+      setIsLoading(true);
+      try {
+        // Zahtevaj dozvolu za pristup lokaciji
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          console.log("Dozvola za pristup lokaciji nije odobrena");
+          Alert.alert("Greška", "Dozvola za pristup lokaciji nije odobrena");
+          setIsLoading(false);
+          return;
+        }
+
+        // Preuzmi trenutnu lokaciju
+        let location = await Location.getCurrentPositionAsync({});
+        setLocation(location.coords);
+
+        // Pozovi funkciju za preuzimanje restorana sa trenutnom lokacijom
+        const latitude = location.coords.latitude;
+        const longitude = location.coords.longitude;
+
+        const restaurantsNearby = await getAllRestaurantsByCoordinates(
+          latitude,
+          longitude
+        );
+        const restaurantsNew = await getAllRestaurants();
+        setRestaurantsNearby(restaurantsNearby.data);
+        setNewRestaurants(restaurantsNew.data);
+      } catch (error) {
+        Alert.alert(
+          "Greška",
+          "Greška pri dobijanju lokacije ili učitavanju restorana"
+        );
+
+        console.log(
+          "Greška pri dobijanju lokacije ili učitavanju restorana:",
+          error
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLocationAndRestaurants();
+  }, []);
 
   const renderHorizontalScroll = (data) => (
     <FlatList
@@ -75,9 +128,12 @@ const AllRestaurants = ({ navigation }) => {
       renderItem={({ item }) => (
         <TouchableOpacity onPress={() => handlePress(item)}>
           <Card style={styles.card}>
-            <Card.Cover source={item.image} style={styles.image} />
+            <Card.Cover
+              source={require("../assets/main.png")}
+              style={styles.image}
+            />
             <Card.Content>
-              <Text style={styles.title}>{item.title}</Text>
+              <Text style={styles.title}>{item.name}</Text>
               <Text style={styles.description}>{item.description}</Text>
             </Card.Content>
           </Card>
@@ -87,37 +143,14 @@ const AllRestaurants = ({ navigation }) => {
     />
   );
 
-  const goToUserProfile = () => {
-    navigation.navigate("PROFILE");
-  };
-
   return (
     <View style={styles.container}>
-      {/* <Card style={styles.cardInfo}>
-        <Card.Title title={"Zdravo Danijela"} titleStyle={styles.cardTitle} /> */}
-      {/* <Card.Content>
-          <Button
-            mode="contained"
-            onPress={goToUserProfile}
-            style={styles.detailButton}
-          >
-            Prikaži profil
-          </Button>
-        </Card.Content> */}
-      {/* </Card> */}
-
+      <Spinner visible={isLoading} />
       <Text style={styles.header}>Restorani u blizini</Text>
-      {renderHorizontalScroll(itemsNearby)}
+      {renderHorizontalScroll(restaurantsNearby)}
 
       <Text style={styles.header}>Novi restorani</Text>
-      {renderHorizontalScroll(itemsNew)}
-
-      {/* <TouchableOpacity
-        style={styles.searchButton}
-        onPress={handleSearchRestaurants}
-      >
-        <Text style={styles.searchButtonText}>Pretraži restorane</Text>
-      </TouchableOpacity> */}
+      {renderHorizontalScroll(newRestaurants)}
     </View>
   );
 };
