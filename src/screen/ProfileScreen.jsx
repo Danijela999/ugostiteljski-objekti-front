@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
   Image,
   TouchableOpacity,
   Alert,
-  ScrollView, // Dodato za vertikalni skrol
+  ScrollView,
+  TextInput, // Dodato za vertikalni skrol
 } from "react-native";
 import {
   Text,
@@ -15,75 +16,29 @@ import {
   Portal,
   Provider as PaperProvider,
 } from "react-native-paper";
+import SimpleLineIcons from "react-native-vector-icons/SimpleLineIcons";
+
 import * as ImagePicker from "expo-image-picker";
+import { AuthContext } from "../context/AuthContext";
 
 import { colors } from "../utils/colors";
-import RestaurantCard from "../components/RestaurantCard";
-
-const profileInfo = {
-  image: require("../assets/profile.png"),
-  title: "Zdravo Danijela!",
-  name: "Danijela Grbović",
-  mail: "danijela.grbovic@gmail.com",
-};
-
-const restaurantInfo = [
-  {
-    image: require("../assets/smokvica.jpg"),
-    title: "Smokvica",
-    time: "15.08.2024. 09:00 - 10:00",
-    position: "Bašta",
-    category: "Doručak",
-    guestCount: 6,
-  },
-  {
-    image: require("../assets/bela_reka.jpg"),
-    title: "Bela Reka",
-    time: "15.08.2024. 19:00 - 22:00",
-    position: "Terasa",
-    category: "Večera",
-    guestCount: 2,
-  },
-  {
-    image: require("../assets/smokvica.jpg"),
-    title: "Smokvica",
-    time: "16.08.2024. 10:00 - 11:00",
-    position: "Bašta",
-    category: "Doručak",
-    guestCount: 6,
-  },
-  {
-    image: require("../assets/smokvica.jpg"),
-    title: "Smokvica",
-    time: "15.08.2024. 09:00 - 10:00",
-    position: "Bašta",
-    category: "Doručak",
-    guestCount: 6,
-  },
-  {
-    image: require("../assets/bela_reka.jpg"),
-    title: "Bela Reka",
-    time: "15.08.2024. 19:00 - 22:00",
-    position: "Terasa",
-    category: "Večera",
-    guestCount: 2,
-  },
-  {
-    image: require("../assets/smokvica.jpg"),
-    title: "Smokvica",
-    time: "16.08.2024. 10:00 - 11:00",
-    position: "Bašta",
-    category: "Doručak",
-    guestCount: 6,
-  },
-];
 
 const ProfileScreen = () => {
-  const [visible, setVisible] = useState(false);
-  const [profileImage, setProfileImage] = useState(profileInfo.image);
+  const { addImage, changeProfilePhoto, getUserByEmail } = useContext(AuthContext);
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileInfo, setPrfileInfo] = useState({first_name: "", email: "", img_url: ""});
+  const [secureEntery, setSecureEntery] = useState(true);
+  const [password, setPassword] = useState(null);
+  useEffect(() => {
+    const getUserInformations = async () => {
+        const userInfo = await getUserByEmail();
+        setProfileImage({uri: userInfo[0].img_url});
+        setPrfileInfo(userInfo[0]);
+        console.log(userInfo);
+    };
 
-  const showModal = () => setVisible(true);
-  const hideModal = () => setVisible(false);
+    getUserInformations();
+  }, []);
 
   const selectImage = async () => {
     Alert.alert(
@@ -133,10 +88,13 @@ const ProfileScreen = () => {
     }
   };
 
-  const saveImage = (uri) => {
-    // Implementirajte logiku za čuvanje putanje slike na željeno mesto.
-    // Možete sačuvati u AsyncStorage ili na backend server, ako je potrebno.
-    console.log("Sačuvana putanja slike:", uri);
+  const saveImage = async(uri) => {
+    const response = await addImage(uri);
+    const photoUrl = response.data.Location;
+    console.log("Sačuvana putanja slike:", response.data.Location,"putanjaaa");
+    await changeProfilePhoto(photoUrl);
+    const user = await getUserByEmail();
+   // console.log(user);
   };
 
   return (
@@ -146,60 +104,43 @@ const ProfileScreen = () => {
           <TouchableOpacity onPress={selectImage} style={styles.imageContainer}>
             <Image source={profileImage} style={styles.image} />
           </TouchableOpacity>
-          <Card.Title title={profileInfo.title} titleStyle={styles.cardTitle} />
-          <Card.Content>
-            <Text style={styles.name}>{profileInfo.name}</Text>
-            <Button
-              mode="contained"
-              onPress={showModal}
-              style={styles.detailButton}
-            >
-              Prikaži detalje
-            </Button>
-          </Card.Content>
+          <Card.Title title={"Zdravo " + profileInfo.first_name + "!"} titleStyle={styles.cardTitle} />
+          {/* <Card.Content>
+            <Text style={styles.name}>Ime i prezime: {profileInfo.name}</Text>
+            <Text style={styles.name}>Email: {profileInfo.mail}</Text>
+          </Card.Content> */}
         </Card>
-        <Card style={styles.card}>
-          <Card.Title
-            title="Aktivne rezervacije"
-            titleStyle={styles.cardTitle}
+        {/* <Text style={styles.titleProfile}>Informacije o profilu</Text> */}
+        <Text style={styles.textProfile}>Ime i prezime: {profileInfo.first_name} {profileInfo.last_name}</Text>
+        <Text style={styles.textProfile}>Email: {profileInfo.email}</Text>
+        
+        <View style={styles.inputContainer}>
+          <SimpleLineIcons name={"lock"} size={30} color={colors.secondary} />
+          <TextInput
+            style={styles.textInput}
+            placeholder="Unesi novu lozinku"
+            placeholderTextColor={colors.secondary}
+            secureTextEntry={secureEntery}
+            value={password}
+            onChangeText={(text) => setPassword(text)}
           />
-          <Card.Content>
-            <ScrollView style={styles.scrollContainer}>
-              {restaurantInfo.map((restaurant, index) => (
-                <RestaurantCard
-                  key={index} // ili još bolje, koristite jedinstveni ID ako postoji: key={restaurant.id}
-                  imageUrl={restaurant.image}
-                  restaurantName={restaurant.title}
-                  time={restaurant.time}
-                  position={restaurant.position}
-                  category={restaurant.category}
-                  guestCount={restaurant.guestCount}
-                />
-              ))}
-            </ScrollView>
-          </Card.Content>
-        </Card>
-        <Portal>
-          <Modal
-            visible={visible}
-            onDismiss={hideModal}
-            contentContainerStyle={styles.modalContainer}
+          <TouchableOpacity
+            onPress={() => {
+              setSecureEntery((prev) => !prev);
+            }}
           >
-            <Image source={profileImage} style={styles.image} />
-            <Text style={styles.modalTitle}>{profileInfo.name}</Text>
-            <Text style={styles.modalDescription}>{profileInfo.mail}</Text>
-            <Button mode="contained" style={styles.closeButton}>
+            <SimpleLineIcons
+             name={"eye"} size={20} color={colors.secondary} />
+          </TouchableOpacity>
+        </View>
+        <Button
+              mode="contained"
+              // onPress={showModal}
+              style={styles.detailButton}
+              labelStyle={{ fontSize: 18 }}
+            >
               Promeni lozinku
             </Button>
-            <Button
-              mode="contained"
-              onPress={hideModal}
-              style={styles.closeButton}
-            >
-              Zatvori
-            </Button>
-          </Modal>
-        </Portal>
       </View>
     </PaperProvider>
   );
@@ -212,52 +153,67 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
   },
   card: {
-    marginBottom: 10,
+    marginBottom: 20,
+    height: "50%"
   },
   cardTitle: {
-    fontSize: 26,
-    paddingTop: 10,
+    fontSize: 30,
+    paddingTop: 5,
+    marginTop: 25,
+    paddingBottom: 30,
     fontWeight: "bold",
     textAlign: "center",
   },
   name: {
     fontSize: 18,
-    color: "gray",
+    color: "black",
     textAlign: "center",
     marginBottom: 10,
+  },
+  textProfile: {
+    fontSize: 22,
+    textAlign: "center",
+    marginTop: 15
   },
   detailButton: {
     justifyContent: "center",
     alignItems: "center",
-    marginLeft: "15%",
-    width: "70%",
+    marginLeft: "10%",
+    fontSize: 20,
+    height: 50,
+    width: "80%",
+    marginTop: 20,
     backgroundColor: colors.zelena,
     borderRadius: 100,
   },
-  modalContainer: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 10,
-    alignItems: "center",
-  },
   imageContainer: {
-    alignItems: "center", // Centriranje slike
+    alignItems: "center",
     marginBottom: 20,
   },
   image: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-  },
-  scrollContainer: {
-    maxHeight: 400, // Postavite maksimalnu visinu za skrol
-  },
-  closeButton: {
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.zelena,
+    width: 200,
+    height: 200,
     borderRadius: 100,
-    marginTop: 10,
+    marginTop: 20
+  },
+  inputContainer: {
+    borderWidth: 1,
+    borderColor: colors.secondary,
+    borderRadius: 100,
+    marginLeft: "10%",
+    paddingHorizontal: 10,
+    marginTop: 60,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 2,
+    marginVertical: 10,
+    height: 50,
+    width: "80%",
+  },
+  textInput: {
+    flex: 1,
+    paddingHorizontal: 10,
+    fontWeight: "light",
   },
 });
 

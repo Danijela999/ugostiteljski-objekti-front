@@ -8,11 +8,11 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(null);
+  const [email, setEmail] = useState(null);
   const [refreshToken, setRefreshToken] = useState(null);
   const [userInfo, setUserInfo] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
-
   // Load tokens from AsyncStorage when the component mounts
   useEffect(() => {
     const loadTokens = async () => {
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
   const instance = axios.create({
     baseURL: `${BASE_URL}`,
     timeout: 5000,
-    headers: { "Content-Type": "application/json" },
+    //headers: { "Content-Type": "application/json" },
   });
 
   const refreshAccessToken = async () => {
@@ -98,12 +98,13 @@ export const AuthProvider = ({ children }) => {
         password,
       });
       let userInfo = res.data;
-
       const userJson = userInfo.data;
       setAccessToken(userJson.accessToken);
       setRefreshToken(userJson.refreshToken);
+      setEmail(userJson.email);
       await AsyncStorage.setItem("accessToken", userJson.accessToken);
       await AsyncStorage.setItem("refreshToken", userJson.refreshToken);
+      await AsyncStorage.setItem("email", userJson.email);
 
       setUserInfo(userInfo);
       await AsyncStorage.setItem("userInfo", JSON.stringify(userInfo));
@@ -196,6 +197,98 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(false);
     }
   };
+  const addImage = async (
+    imageUri
+  ) => {
+    setIsLoading(true);
+    const now = new Date();
+  
+    // Formatiranje datuma i vremena
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Dodavanje 1 jer su meseci 0-indeksirani
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+  
+    const formattedDate = `${year}${month}${day}_${hours}${minutes}${seconds}`;
+  
+    // Generisanje nasumičnog stringa
+    const randomString = Math.random().toString(36).substring(2, 8);
+    const fileName = `image_${formattedDate}_${randomString}.jpg`;
+
+    const data = new FormData();
+    data.append('file', {
+    uri:  imageUri,
+    name: fileName, 
+    type: 'image/jpeg'
+  });
+    //console.log(data);
+    //console.log(JSON.stringify(data, null, 4));
+    try {
+      const res = await makeAuthenticatedRequest((token) =>
+        instance.post(
+          `/images`, data,
+          {
+            headers: { Authorization: `${token}`, 'Content-Type': 'multipart/form-data' },
+          }
+        )
+      );
+
+      let url = res.data;
+      setIsLoading(false);
+      return url;
+    } catch (error) {
+      console.log(JSON.stringify(error, null, 4));
+      setIsLoading(false);
+    }
+  };
+  const changeProfilePhoto = async (
+    photoUrl
+  ) => {
+    setIsLoading(true);
+    try {
+      const res = await makeAuthenticatedRequest((token) =>
+        instance.patch(
+          `/users/change-profile-photo`,
+          {
+            email, photoUrl
+          },
+          {
+            headers: { Authorization: `${token}` },
+          }
+        )
+      );
+
+      setIsLoading(false);
+    } catch (error) {
+      console.log(`Change Profile photo error ${error}`);
+      setIsLoading(false);
+    }
+  };
+  const getUserByEmail = async () => {
+    setIsLoading(true);
+    try {
+      const url = "/users/"+email;
+    //  console.log("urllllllllllll",url);
+      const res = await makeAuthenticatedRequest((token) =>
+        instance.get(
+          url,
+          {
+            headers: { Authorization: `${token}` },
+          }
+        )
+      );
+      let user = res.data.data;
+      console.log(user);
+
+      setIsLoading(false);
+      return user;
+    } catch (error) {
+      console.log(`getAllRestaurantsByCoordinates error ${error}`);
+      setIsLoading(false);
+    }
+  };
 
   const logout = async () => {
     setIsLoading(true);
@@ -213,9 +306,11 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.removeItem("userInfo");
       await AsyncStorage.removeItem("accessToken");
       await AsyncStorage.removeItem("refreshToken");
+      await AsyncStorage.removeItem("email");
       setUserInfo({});
       setAccessToken(null);
       setRefreshToken(null);
+      setEmail(null);
       setIsLoading(false);
     } catch (error) {
       console.log(`logout error ${error}`);
@@ -233,9 +328,13 @@ export const AuthProvider = ({ children }) => {
         addRestaurant,
         getAllRestaurantsByCoordinates,
         getAllRestaurants,
+        addImage,
+        changeProfilePhoto,
+        getUserByEmail
       }}
     >
       {children}
     </AuthContext.Provider>
   );
+
 };
