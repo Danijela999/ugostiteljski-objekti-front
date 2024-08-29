@@ -32,7 +32,6 @@ export const AuthProvider = ({ children }) => {
   const instance = axios.create({
     baseURL: `${BASE_URL}`,
     timeout: 5000,
-    //headers: { "Content-Type": "application/json" },
   });
 
   const refreshAccessToken = async () => {
@@ -43,7 +42,6 @@ export const AuthProvider = ({ children }) => {
       const tokenData = response.data.data;
       const newAccessToken = tokenData.accessToken;
 
-      // Update the state and AsyncStorage
       setAccessToken(newAccessToken);
       await AsyncStorage.setItem("accessToken", newAccessToken);
 
@@ -109,7 +107,11 @@ export const AuthProvider = ({ children }) => {
       setUserInfo(userInfo);
       await AsyncStorage.setItem("userInfo", JSON.stringify(userInfo));
       setIsLoading(false);
-      navigation.navigate("DASHBOARD");
+      if (userJson.privilegeId == 2) {
+        navigation.navigate("DASHBOARD_ADMIN");
+      } else {
+        navigation.navigate("DASHBOARD");
+      }
     } catch (error) {
       console.log(`login error ${error}`);
       Alert.alert("Greska", "Doslo je do greske!");
@@ -197,42 +199,40 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(false);
     }
   };
-  const addImage = async (
-    imageUri
-  ) => {
+  const addImage = async (imageUri) => {
     setIsLoading(true);
     const now = new Date();
-  
+
     // Formatiranje datuma i vremena
     const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0'); // Dodavanje 1 jer su meseci 0-indeksirani
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-  
+    const month = String(now.getMonth() + 1).padStart(2, "0"); // Dodavanje 1 jer su meseci 0-indeksirani
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+
     const formattedDate = `${year}${month}${day}_${hours}${minutes}${seconds}`;
-  
+
     // Generisanje nasumičnog stringa
     const randomString = Math.random().toString(36).substring(2, 8);
     const fileName = `image_${formattedDate}_${randomString}.jpg`;
 
     const data = new FormData();
-    data.append('file', {
-    uri:  imageUri,
-    name: fileName, 
-    type: 'image/jpeg'
-  });
+    data.append("file", {
+      uri: imageUri,
+      name: fileName,
+      type: "image/jpeg",
+    });
     //console.log(data);
     //console.log(JSON.stringify(data, null, 4));
     try {
       const res = await makeAuthenticatedRequest((token) =>
-        instance.post(
-          `/images`, data,
-          {
-            headers: { Authorization: `${token}`, 'Content-Type': 'multipart/form-data' },
-          }
-        )
+        instance.post(`/images`, data, {
+          headers: {
+            Authorization: `${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        })
       );
 
       let url = res.data;
@@ -243,16 +243,56 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(false);
     }
   };
-  const changeProfilePhoto = async (
-    photoUrl
-  ) => {
+
+  const getCategories = async () => {
+    setIsLoading(true);
+
+    try {
+      const res = await makeAuthenticatedRequest((token) =>
+        instance.get(`/categories`, {
+          headers: { Authorization: `${token}` },
+        })
+      );
+
+      let categories = res.data;
+
+      setIsLoading(false);
+      return categories;
+    } catch (error) {
+      console.log(`getCategories error ${error}`);
+      setIsLoading(false);
+    }
+  };
+
+  const getPositions = async () => {
+    setIsLoading(true);
+
+    try {
+      const res = await makeAuthenticatedRequest((token) =>
+        instance.get(`/positions`, {
+          headers: { Authorization: `${token}` },
+        })
+      );
+
+      let positions = res.data;
+
+      setIsLoading(false);
+      return positions;
+    } catch (error) {
+      console.log(`getPositions error ${error}`);
+      setIsLoading(false);
+    }
+  };
+
+  const changeProfilePhoto = async (photoUrl) => {
     setIsLoading(true);
     try {
       const res = await makeAuthenticatedRequest((token) =>
         instance.patch(
           `/users/change-profile-photo`,
           {
-            email, photoUrl
+            email,
+            photoUrl,
           },
           {
             headers: { Authorization: `${token}` },
@@ -269,21 +309,70 @@ export const AuthProvider = ({ children }) => {
   const getUserByEmail = async () => {
     setIsLoading(true);
     try {
-      const url = "/users/"+email;
-    //  console.log("urllllllllllll",url);
+      const url = "/users/" + email;
+      //  console.log("urllllllllllll",url);
       const res = await makeAuthenticatedRequest((token) =>
-        instance.get(
-          url,
-          {
-            headers: { Authorization: `${token}` },
-          }
-        )
+        instance.get(url, {
+          headers: { Authorization: `${token}` },
+        })
       );
       let user = res.data.data;
       console.log(user);
 
       setIsLoading(false);
       return user;
+    } catch (error) {
+      console.log(`getAllRestaurantsByCoordinates error ${error}`);
+      setIsLoading(false);
+    }
+  };
+
+  const changePasswordService = async (password) => {
+    setIsLoading(true);
+    try {
+      // console.log(password);
+      const url = "/users/change-password";
+      //  console.log("urllllllllllll",url);
+      const res = await makeAuthenticatedRequest((token) =>
+        instance.patch(
+          url,
+          {
+            email,
+            password,
+          },
+          {
+            headers: { Authorization: `${token}` },
+          }
+        )
+      );
+      // console.log(res);
+      let { code } = res.data;
+      if (code == 201) {
+        setIsLoading(false);
+        return true;
+      }
+      setIsLoading(false);
+      return false;
+    } catch (error) {
+      console.log(`changePasswordService error ${error}`);
+      setIsLoading(false);
+    }
+  };
+
+  const getAllRestaurantsByName = async (name) => {
+    setIsLoading(true);
+
+    try {
+      const res = await makeAuthenticatedRequest((token) =>
+        instance.get(`/restaurants/name?name=${name}`, {
+          headers: { Authorization: `${token}` },
+        })
+      );
+
+      let restaurantInfo = res.data;
+
+      setIsLoading(false);
+      return restaurantInfo;
     } catch (error) {
       console.log(`getAllRestaurantsByCoordinates error ${error}`);
       setIsLoading(false);
@@ -327,14 +416,17 @@ export const AuthProvider = ({ children }) => {
         logout,
         addRestaurant,
         getAllRestaurantsByCoordinates,
+        getAllRestaurantsByName,
         getAllRestaurants,
+        getCategories,
+        getPositions,
         addImage,
         changeProfilePhoto,
-        getUserByEmail
+        getUserByEmail,
+        changePasswordService,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
-
 };

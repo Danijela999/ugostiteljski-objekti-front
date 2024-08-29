@@ -16,52 +16,6 @@ import Spinner from "react-native-loading-spinner-overlay/lib";
 
 const screenWidth = Dimensions.get("window").width;
 
-const itemsNearby = [
-  {
-    image: require("../assets/logo.png"),
-    title: "First Title",
-    description: "First Description",
-  },
-  {
-    image: require("../assets/main.png"),
-    title: "Second Title",
-    description: "Second Description",
-  },
-  {
-    image: require("../assets/logo.png"),
-    title: "Third Title",
-    description: "Third Description",
-  },
-  {
-    image: require("../assets/main.png"),
-    title: "Fourth Title",
-    description: "Fourth Description",
-  },
-];
-
-const itemsNew = [
-  {
-    image: require("../assets/logo.png"),
-    title: "Fifth Title",
-    description: "Fifth Description",
-  },
-  {
-    image: require("../assets/main.png"),
-    title: "Sixth Title",
-    description: "Sixth Description",
-  },
-  {
-    image: require("../assets/logo.png"),
-    title: "Seventh Title",
-    description: "Seventh Description",
-  },
-  {
-    image: require("../assets/main.png"),
-    title: "Eighth Title",
-    description: "Eighth Description",
-  },
-];
-
 const AllRestaurants = ({ navigation }) => {
   const [restaurantsNearby, setRestaurantsNearby] = useState([]);
   const [newRestaurants, setNewRestaurants] = useState([]);
@@ -71,14 +25,13 @@ const AllRestaurants = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePress = (item) => {
-    console.log("Clicked item:", item);
+    navigation.navigate("RESERVATION", { item });
   };
 
   useEffect(() => {
     const fetchLocationAndRestaurants = async () => {
       setIsLoading(true);
       try {
-        // Zahtevaj dozvolu za pristup lokaciji
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
           console.log("Dozvola za pristup lokaciji nije odobrena");
@@ -87,11 +40,9 @@ const AllRestaurants = ({ navigation }) => {
           return;
         }
 
-        // Preuzmi trenutnu lokaciju
         let location = await Location.getCurrentPositionAsync({});
         setLocation(location.coords);
 
-        // Pozovi funkciju za preuzimanje restorana sa trenutnom lokacijom
         const latitude = location.coords.latitude;
         const longitude = location.coords.longitude;
 

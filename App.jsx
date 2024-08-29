@@ -9,9 +9,10 @@ import LoginScreen from "./src/screen/LoginScreen";
 import { AuthProvider } from "./src/context/AuthContext";
 import AddRestaurant from "./src/screen/AddRestaurant";
 import Dashboard from "./src/screen/Dashboard";
-import ReservationScreen from "./src/screen/ReservationScreen";
+import CreateReservationScreen from "./src/screen/CreateReservationScreen";
 import { PaperProvider } from "react-native-paper";
 import ProfileScreen from "./src/screen/ProfileScreen";
+import DashboardAdmin from "./src/screen/DashboardAdmin";
 
 const Stack = createNativeStackNavigator();
 const App = () => {
@@ -26,11 +27,14 @@ const App = () => {
           >
             <Stack.Screen name={"HOME"} component={HomeScreen} />
             <Stack.Screen name={"DASHBOARD"} component={Dashboard} />
-
+            <Stack.Screen name={"DASHBOARD_ADMIN"} component={DashboardAdmin} />
             <Stack.Screen name={"PROFILE"} component={ProfileScreen} />
             <Stack.Screen name={"LOGIN"} component={LoginScreen} />
             <Stack.Screen name={"MAP"} component={AddRestaurant} />
-            <Stack.Screen name={"RESERVATION"} component={ReservationScreen} />
+            <Stack.Screen
+              name={"RESERVATION"}
+              component={CreateReservationScreen}
+            />
             <Stack.Screen name="SIGNUP" component={SignupScreen} />
           </Stack.Navigator>
         </AuthProvider>

@@ -22,19 +22,34 @@ import * as ImagePicker from "expo-image-picker";
 import { AuthContext } from "../context/AuthContext";
 
 import { colors } from "../utils/colors";
+import Spinner from "react-native-loading-spinner-overlay/lib";
 
 const ProfileScreen = () => {
-  const { addImage, changeProfilePhoto, getUserByEmail } = useContext(AuthContext);
+  const {
+    addImage,
+    changeProfilePhoto,
+    getUserByEmail,
+    changePasswordService,
+    isLoading,
+  } = useContext(AuthContext);
   const [profileImage, setProfileImage] = useState(null);
-  const [profileInfo, setPrfileInfo] = useState({first_name: "", email: "", img_url: ""});
+  const [profileInfo, setPrfileInfo] = useState({
+    first_name: "",
+    email: "",
+    img_url: "",
+  });
   const [secureEntery, setSecureEntery] = useState(true);
-  const [password, setPassword] = useState(null);
+  const [password, setPassword] = useState("");
   useEffect(() => {
     const getUserInformations = async () => {
-        const userInfo = await getUserByEmail();
-        setProfileImage({uri: userInfo[0].img_url});
-        setPrfileInfo(userInfo[0]);
-        console.log(userInfo);
+      const userInfo = await getUserByEmail();
+      const defaultImg = require("../assets/profile.png");
+      setProfileImage(defaultImg);
+      if (userInfo[0].img_url) {
+        setProfileImage({ uri: userInfo[0].img_url });
+      }
+      setPrfileInfo(userInfo[0]);
+      console.log(userInfo);
     };
 
     getUserInformations();
@@ -88,32 +103,46 @@ const ProfileScreen = () => {
     }
   };
 
-  const saveImage = async(uri) => {
+  const saveImage = async (uri) => {
     const response = await addImage(uri);
     const photoUrl = response.data.Location;
-    console.log("Sačuvana putanja slike:", response.data.Location,"putanjaaa");
+    console.log("Sačuvana putanja slike:", response.data.Location, "putanjaaa");
     await changeProfilePhoto(photoUrl);
-    const user = await getUserByEmail();
-   // console.log(user);
+  };
+
+  const changePassword = async () => {
+    if (password === "") {
+      Alert.alert("Info", "Sifra mora biti popunjena!");
+      return;
+    }
+    const res = await changePasswordService(password);
+    if (res) {
+      Alert.alert("Info", "Sifra je uspesno promenjena!");
+      setPassword("");
+    } else {
+      Alert.alert("Greska", "Doslo je do greske prilikom promene sifre");
+      setPassword("");
+    }
   };
 
   return (
     <PaperProvider>
+      <Spinner visible={isLoading} />
       <View style={styles.container}>
         <Card style={styles.card}>
           <TouchableOpacity onPress={selectImage} style={styles.imageContainer}>
             <Image source={profileImage} style={styles.image} />
           </TouchableOpacity>
-          <Card.Title title={"Zdravo " + profileInfo.first_name + "!"} titleStyle={styles.cardTitle} />
-          {/* <Card.Content>
-            <Text style={styles.name}>Ime i prezime: {profileInfo.name}</Text>
-            <Text style={styles.name}>Email: {profileInfo.mail}</Text>
-          </Card.Content> */}
+          <Card.Title
+            title={"Zdravo " + profileInfo.first_name + "!"}
+            titleStyle={styles.cardTitle}
+          />
         </Card>
-        {/* <Text style={styles.titleProfile}>Informacije o profilu</Text> */}
-        <Text style={styles.textProfile}>Ime i prezime: {profileInfo.first_name} {profileInfo.last_name}</Text>
+        <Text style={styles.textProfile}>
+          Ime i prezime: {profileInfo.first_name} {profileInfo.last_name}
+        </Text>
         <Text style={styles.textProfile}>Email: {profileInfo.email}</Text>
-        
+
         <View style={styles.inputContainer}>
           <SimpleLineIcons name={"lock"} size={30} color={colors.secondary} />
           <TextInput
@@ -129,18 +158,17 @@ const ProfileScreen = () => {
               setSecureEntery((prev) => !prev);
             }}
           >
-            <SimpleLineIcons
-             name={"eye"} size={20} color={colors.secondary} />
+            <SimpleLineIcons name={"eye"} size={20} color={colors.secondary} />
           </TouchableOpacity>
         </View>
         <Button
-              mode="contained"
-              // onPress={showModal}
-              style={styles.detailButton}
-              labelStyle={{ fontSize: 18 }}
-            >
-              Promeni lozinku
-            </Button>
+          mode="contained"
+          onPress={changePassword}
+          style={styles.detailButton}
+          labelStyle={{ fontSize: 18 }}
+        >
+          Promeni lozinku
+        </Button>
       </View>
     </PaperProvider>
   );
@@ -154,7 +182,7 @@ const styles = StyleSheet.create({
   },
   card: {
     marginBottom: 20,
-    height: "50%"
+    height: "50%",
   },
   cardTitle: {
     fontSize: 30,
@@ -173,7 +201,7 @@ const styles = StyleSheet.create({
   textProfile: {
     fontSize: 22,
     textAlign: "center",
-    marginTop: 15
+    marginTop: 15,
   },
   detailButton: {
     justifyContent: "center",
@@ -194,7 +222,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    marginTop: 20
+    marginTop: 20,
   },
   inputContainer: {
     borderWidth: 1,
