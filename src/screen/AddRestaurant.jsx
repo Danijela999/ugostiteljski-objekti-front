@@ -234,7 +234,21 @@ export default function AddRestaurant() {
       imageUrl,
     };
 
-    console.log(params);
+    const res = await addRestaurant(params);
+    if (res) {
+      Alert.alert("Info", "Restoran je uspesno dodat!");
+      setName("");
+      setAddress("");
+      setImageUrl("");
+      setNumberOfChairs("");
+      setPage(1);
+      setPosition("");
+      setEndTime(0);
+      setStartTime(0);
+      setDescription("");
+    } else {
+      Alert.alert("Greska", "Doslo je do greske");
+    }
   };
 
   return (

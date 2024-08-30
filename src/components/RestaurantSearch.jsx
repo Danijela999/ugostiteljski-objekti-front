@@ -10,7 +10,7 @@ const RestaurantSearch = ({ navigation, restaurant, image, time }) => {
 
   return (
     <View style={styles.container}>
-      <Image source={image} style={styles.image} />
+      <Image source={{uri: image}} style={styles.image} />
       <View style={styles.detailsContainer}>
         <Text style={styles.restaurantName}>{restaurant.name}</Text>
         <Text style={styles.time}>{time}</Text>

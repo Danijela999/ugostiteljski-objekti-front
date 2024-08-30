@@ -45,7 +45,7 @@ const generateTimeSlots = () => {
 
 const CreateReservationScreen = ({ route }) => {
   const { item } = route.params;
-  const { address, description, name, startTime, endTime } = item;
+  const { address, description, name, startTime, endTime, imageUrl } = item;
   const [visible, setVisible] = useState(false);
   const [visibleReservation, setVisibleReservation] = useState(false);
   const [date, setDate] = useState(new Date());
@@ -245,7 +245,7 @@ const CreateReservationScreen = ({ route }) => {
             <Card.Content>
               <ScrollView horizontal style={styles.timeSlotContainer}>
                 {timeSlots.map((slot, index) => {
-                  const isAvailable = Math.random() > 0.2;
+                  const isAvailable = Math.random() > 0;
                   return (
                     <TouchableOpacity
                       key={index}
@@ -310,7 +310,7 @@ const CreateReservationScreen = ({ route }) => {
             onDismiss={hideModal}
             contentContainerStyle={styles.modalContainer}
           >
-            <Image source={restaurantInfo.image} style={styles.image} />
+            <Image source={{uri: imageUrl}} style={styles.image} />
             <Text style={styles.modalTitle}>{name}</Text>
             <Text style={styles.modalDescription}>{address}</Text>
             <Text style={styles.modalDescription}>{description}</Text>

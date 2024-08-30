@@ -64,7 +64,7 @@ const SearchScreen = ({ navigation }) => {
                     <RestaurantSearch
                       navigation={navigation}
                       key={index}
-                      image={require("../assets/main.png")}
+                      image={restaurant.imageUrl}
                       time={
                         "Radno vreme: " +
                         restaurant.startTime +

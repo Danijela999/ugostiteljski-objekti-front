@@ -80,7 +80,7 @@ const AllRestaurants = ({ navigation }) => {
         <TouchableOpacity onPress={() => handlePress(item)}>
           <Card style={styles.card}>
             <Card.Cover
-              source={require("../assets/main.png")}
+              source={{uri: item.imageUrl}}
               style={styles.image}
             />
             <Card.Content>

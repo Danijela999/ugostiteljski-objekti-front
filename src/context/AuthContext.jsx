@@ -120,29 +120,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   const addRestaurant = async (
-    name,
-    description,
-    address,
-    latitude,
-    longitude,
-    startTime,
-    endTime
+    params
   ) => {
     setIsLoading(true);
-
+    console.log(params)
+    const paramsNew = {
+      ...params,
+      email: email
+    }
     try {
       const res = await makeAuthenticatedRequest((token) =>
         instance.post(
           `/restaurants`,
-          {
-            name,
-            description,
-            address,
-            latitude,
-            longitude,
-            startTime,
-            endTime,
-          },
+          paramsNew
+          ,
           {
             headers: { Authorization: `${token}` },
           }
@@ -152,9 +143,15 @@ export const AuthProvider = ({ children }) => {
       let restaurantInfo = res.data;
       console.log(restaurantInfo);
       setIsLoading(false);
+      if (res.data.code === 201) {
+        return true;
+      } else {
+        return false;
+      }
     } catch (error) {
       console.log(`addRestaurant error ${error}`);
       setIsLoading(false);
+      return false;
     }
   };
 
@@ -172,7 +169,7 @@ export const AuthProvider = ({ children }) => {
       );
 
       let restaurantInfo = res.data;
-
+      console.log(restaurantInfo);
       setIsLoading(false);
       return restaurantInfo;
     } catch (error) {
