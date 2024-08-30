@@ -18,38 +18,40 @@ import ReservationAdminCard from "../components/ReservationAdminCard";
 
 const activeReservationInfo = [
   {
-    title: "Igor Mandic",
+    title: "Danijela Grbovic",
     image: require("../assets/smokvica.jpg"),
     restaurantName: "Bela reka",
-    email: "igormandic996@gmail.com",
+    email: "danijela.grbovic@gmail.com",
     time: "15.08.2024. 09:00 - 10:00",
     position: "Bašta",
     category: "Doručak",
     guestCount: 6,
   },
   {
-    title: "Igor Mandic",
+    title: "Danijela Grbovic",
     image: require("../assets/smokvica.jpg"),
     restaurantName: "Bela reka",
-    email: "igormandic996@gmail.com",
+    email: "danijela.grbovic@gmail.com",
     time: "15.08.2024. 19:00 - 22:00",
     position: "Terasa",
     category: "Večera",
     guestCount: 2,
   },
   {
-    title: "Igor Mandic",
+    title: "Danijela Grbovic",
     image: require("../assets/smokvica.jpg"),
     restaurantName: "Bela reka",
-    email: "igormandic996@gmail.com",
+    email: "danijela.grbovic@gmail.com",
     time: "16.08.2024. 10:00 - 11:00",
     position: "Bašta",
     category: "Doručak",
     guestCount: 6,
   },
   {
-    title: "Igor Mandic",
-    email: "igormandic996@gmail.com",
+    title: "Danijela Grbovic",
+    email: "danijela.grbovic@gmail.com",
+    image: require("../assets/bela_reka.jpg"),
+    restaurantName: "Pavone Trattoria",
     time: "15.08.2024. 09:00 - 10:00",
     position: "Bašta",
     category: "Doručak",
@@ -125,7 +127,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   scrollContainer: {
-    maxHeight: 300,
+    maxHeight: 700,
   },
 });
 

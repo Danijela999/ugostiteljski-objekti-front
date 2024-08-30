@@ -245,7 +245,7 @@ const CreateReservationScreen = ({ route }) => {
             <Card.Content>
               <ScrollView horizontal style={styles.timeSlotContainer}>
                 {timeSlots.map((slot, index) => {
-                  const isAvailable = Math.random() > 0;
+                  const isAvailable = Math.random() > 0.2;
                   return (
                     <TouchableOpacity
                       key={index}
